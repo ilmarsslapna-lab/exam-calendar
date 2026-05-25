@@ -101,12 +101,22 @@ async function initDB() {
     FOREIGN KEY (group_id) REFERENCES groups_tbl(id) ON DELETE CASCADE
   )`);
 
+  // Migrate: if old 'groups' table exists, rename it
+  try { db.run("ALTER TABLE groups RENAME TO groups_tbl"); console.log('Migrated: groups -> groups_tbl'); } catch(e) {}
+
   const adminExists = db.exec("SELECT id FROM users WHERE username='admin'");
   if (adminExists.length === 0) {
     const hash = bcrypt.hashSync('admin123', 10);
     db.run("INSERT INTO users (username, password, role) VALUES ('admin', ?, 'superadmin')", [hash]);
     console.log('Default superadmin created: admin / admin123');
+  } else {
+    // Migrate: upgrade old 'admin' role to 'superadmin'
+    db.run("UPDATE users SET role = 'superadmin' WHERE username = 'admin' AND role = 'admin'");
   }
+
+  // Migrate: add 'role' column to user_groups if missing
+  try { db.run("ALTER TABLE user_groups ADD COLUMN role TEXT DEFAULT 'member'"); } catch(e) {}
+
   saveDB();
 }
 
