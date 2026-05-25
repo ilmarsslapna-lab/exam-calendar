@@ -240,15 +240,36 @@ app.delete('/api/users/:userId/groups/:groupId', auth, adminOnly, (req, res) => 
   res.json({ ok: true });
 });
 
-// SPA fallback
-app.get('/{0,}', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// SPA fallback — serve index.html for any non-API GET request
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api/')) {
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(500).send('index.html not found — check public/ folder');
+    }
+  } else {
+    next();
+  }
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ error: 'Servera kļūda' });
 });
 
 initDB().then(() => {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`DB path: ${DB_PATH}`);
+    console.log(`Public dir: ${path.join(__dirname, 'public')}`);
+    console.log(`index.html exists: ${fs.existsSync(path.join(__dirname, 'public', 'index.html'))}`);
     console.log('Admin login: admin / admin123');
   });
+}).catch(err => {
+  console.error('Failed to start:', err);
+  process.exit(1);
 });
