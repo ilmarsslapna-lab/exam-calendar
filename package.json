@@ -1,0 +1,20 @@
+{
+  "name": "exam-app",
+  "version": "1.0.0",
+  "description": "Eksāmenu kalendāra sistēma",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "sql.js": "^1.14.1"
+  }
+}
