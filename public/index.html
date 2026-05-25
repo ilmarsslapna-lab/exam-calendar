@@ -5,820 +5,454 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eksāmenu Kalendārs</title>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg-deep: #0B1120;
-  --bg-card: #131B2E;
-  --bg-card2: #1A2340;
-  --border: rgba(99,102,241,0.15);
-  --border-hover: rgba(99,102,241,0.4);
-  --accent: #6366F1;
-  --accent-light: #A5B4FC;
-  --accent-glow: rgba(99,102,241,0.25);
-  --text: #E2E8F0;
-  --text-dim: #94A3B8;
-  --text-muted: #64748B;
-  --danger: #EF4444;
-  --success: #10B981;
-  --radius: 12px;
-}
-
-body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: var(--bg-deep);
-  color: var(--text);
-  min-height: 100vh;
-}
-
-@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-@keyframes scaleIn { from { opacity:0; transform:scale(.96); } to { opacity:1; transform:scale(1); } }
-@keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.15); } }
-
-/* Layout */
-.app-header {
-  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card2) 100%);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 24px;
-  display: flex; justify-content: space-between; align-items: center;
-  position: sticky; top: 0; z-index: 100;
-  backdrop-filter: blur(20px);
-}
-.app-header h1 {
-  font-size: 22px; font-weight: 800;
-  background: linear-gradient(135deg, #818CF8, #C084FC);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.app-header .user-info { display:flex; align-items:center; gap:12px; font-size:14px; }
-.app-header .role-badge {
-  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-  padding: 3px 8px; border-radius: 6px;
-  background: rgba(99,102,241,0.2); color: var(--accent-light);
-}
-.app-header .role-badge.admin { background: rgba(234,179,8,0.2); color: #FDE047; }
-
-.container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
-
-/* Buttons */
-.btn {
-  padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px;
-  font-weight: 600; cursor: pointer; transition: all .15s;
-}
-.btn-primary { background: linear-gradient(135deg, #6366F1, #7C3AED); color: #fff; }
-.btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
-.btn-ghost { background: rgba(99,102,241,.12); color: var(--accent-light); }
-.btn-ghost:hover { background: rgba(99,102,241,.25); }
-.btn-danger { background: rgba(239,68,68,.15); color: #F87171; }
-.btn-danger:hover { background: #EF4444; color: #fff; }
-.btn-sm { padding: 5px 10px; font-size: 12px; }
-.btn-logout { background: rgba(148,163,184,.1); color: var(--text-dim); }
-.btn-logout:hover { background: rgba(239,68,68,.2); color: #F87171; }
-
-/* Inputs */
-.input {
-  width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px;
-  background: var(--bg-deep); border: 1px solid var(--border); color: var(--text);
-  outline: none; transition: border .15s;
-}
-.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-.input::placeholder { color: var(--text-muted); }
-
-/* Cards */
-.card {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
-  padding: 20px; animation: fadeIn .4s ease;
-}
-
-/* Auth page */
-.auth-wrapper {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,.15) 0%, transparent 60%), var(--bg-deep);
-}
-.auth-card {
-  width: 380px; max-width: 90vw; padding: 32px; border-radius: 20px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  animation: scaleIn .3s ease;
-  box-shadow: 0 25px 60px rgba(0,0,0,.4);
-}
-.auth-card h2 { font-size: 24px; font-weight: 800; margin-bottom: 4px; text-align: center; }
-.auth-card .sub { text-align: center; color: var(--text-dim); font-size: 13px; margin-bottom: 24px; }
-.auth-card .field { margin-bottom: 14px; }
-.auth-card label { display: block; font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; }
-.auth-card .btn-primary { width: 100%; padding: 12px; font-size: 15px; margin-top: 8px; }
-.auth-card .toggle { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-dim); }
-.auth-card .toggle a { color: var(--accent-light); cursor: pointer; text-decoration: underline; }
-.auth-error { background: rgba(239,68,68,.1); color: #F87171; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; text-align: center; }
-
-/* Tabs */
-.tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--bg-card); border-radius: 12px; padding: 4px; border: 1px solid var(--border); }
-.tab {
-  flex: 1; padding: 10px; text-align: center; border-radius: 10px; font-size: 13px;
-  font-weight: 600; cursor: pointer; transition: all .15s; color: var(--text-dim); background: transparent; border: none;
-}
-.tab.active { background: var(--accent); color: #fff; box-shadow: 0 4px 12px var(--accent-glow); }
-.tab:not(.active):hover { background: rgba(99,102,241,.1); }
-
-/* Groups sidebar */
-.layout { display: flex; gap: 20px; flex-wrap: wrap; }
-.sidebar { flex: 0 0 260px; min-width: 200px; }
-.main-content { flex: 1; min-width: 0; }
-
-.group-list { display: flex; flex-direction: column; gap: 6px; }
-.group-item {
-  padding: 10px 14px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;
-  display: flex; justify-content: space-between; align-items: center;
-  transition: all .15s; border: 1px solid transparent;
-  background: var(--bg-card2);
-}
-.group-item:hover { border-color: var(--border-hover); }
-.group-item.active { background: rgba(99,102,241,.15); border-color: var(--accent); color: var(--accent-light); }
-.group-item .exam-count {
-  font-size: 11px; background: rgba(99,102,241,.2); color: var(--accent-light);
-  padding: 2px 8px; border-radius: 6px; font-weight: 700;
-}
-
-/* Calendar */
-.cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.cal-header h3 { font-size: 18px; font-weight: 700; }
-.cal-nav { display: flex; gap: 8px; align-items: center; }
-.cal-nav button {
-  width: 34px; height: 34px; border-radius: 8px; border: none;
-  background: rgba(99,102,241,.12); color: var(--accent-light); font-size: 16px;
-  cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center;
-}
-.cal-nav button:hover { background: rgba(99,102,241,.3); }
-.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
-.cal-day-header {
-  text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); padding: 6px 0;
-}
-.cal-day-header.weekend { color: #F87171; }
-.cal-day {
-  aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; cursor: pointer; transition: all .15s;
-  position: relative; font-size: 14px; border: 1px solid transparent;
-}
-.cal-day:hover { background: rgba(99,102,241,.12); transform: scale(1.03); }
-.cal-day.today { border: 2px solid var(--accent); background: rgba(99,102,241,.1); font-weight: 800; }
-.cal-day.has-exam { background: rgba(99,102,241,.06); border-color: var(--border); }
-.cal-day .dots { display: flex; gap: 3px; margin-top: 3px; }
-.cal-day .dot { width: 6px; height: 6px; border-radius: 50%; animation: pulse 2.5s ease infinite; }
-
-/* Exam list */
-.exam-row {
-  display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px;
-  background: var(--bg-card2); margin-bottom: 6px; transition: all .15s; border: 1px solid transparent;
-  animation: fadeIn .3s ease;
-}
-.exam-row:hover { border-color: var(--border-hover); }
-.exam-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.exam-info { flex: 1; }
-.exam-subject { font-size: 14px; font-weight: 600; }
-.exam-note { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-.exam-date { font-size: 12px; color: var(--accent-light); font-weight: 600; }
-
-/* Modal */
-.modal-bg {
-  position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200;
-  display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);
-  animation: fadeIn .15s ease;
-}
-.modal {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
-  padding: 24px; width: 420px; max-width: 92vw; animation: scaleIn .2s ease;
-  box-shadow: 0 25px 60px rgba(0,0,0,.5);
-}
-.modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
-.modal .field { margin-bottom: 14px; }
-.modal label { display: block; font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; }
-.modal .actions { display: flex; gap: 10px; margin-top: 20px; }
-.modal .actions .btn { flex: 1; padding: 10px; }
-
-/* Subject chips */
-.subject-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.subject-chip {
-  padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
-  cursor: pointer; transition: all .15s; border: none;
-  background: var(--bg-card2); color: var(--text-dim);
-}
-.subject-chip.active { color: #fff; }
-.subject-chip:hover { filter: brightness(1.2); }
-
-/* Users table */
-.users-table { width: 100%; border-collapse: collapse; }
-.users-table th {
-  text-align: left; font-size: 12px; font-weight: 700; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 1px; padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-}
-.users-table td { padding: 10px 14px; font-size: 14px; border-bottom: 1px solid rgba(148,163,184,.08); }
-.users-table tr:hover td { background: rgba(99,102,241,.04); }
-
-.group-tag {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
-  background: rgba(99,102,241,.15); color: var(--accent-light); margin: 2px 4px 2px 0;
-}
-.group-tag .remove {
-  width: 14px; height: 14px; border-radius: 4px; border: none;
-  background: transparent; color: var(--text-muted); cursor: pointer; font-size: 12px;
-  display: flex; align-items: center; justify-content: center; transition: all .1s;
-}
-.group-tag .remove:hover { background: var(--danger); color: #fff; }
-
-.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-.empty-state .icon { font-size: 40px; margin-bottom: 8px; }
-.empty-state p { font-size: 13px; }
-
-@media (max-width: 700px) {
-  .sidebar { flex: 1 1 100%; }
-  .layout { flex-direction: column; }
-  .cal-day { font-size: 12px; }
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0B1120;--card:#131B2E;--card2:#1A2340;--brd:rgba(99,102,241,.15);--brd2:rgba(99,102,241,.4);--acc:#6366F1;--accl:#A5B4FC;--accg:rgba(99,102,241,.25);--txt:#E2E8F0;--dim:#94A3B8;--mut:#64748B;--red:#EF4444;--grn:#10B981;--warn:#F59E0B}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.hdr{background:linear-gradient(135deg,var(--card),var(--card2));border-bottom:1px solid var(--brd);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);flex-wrap:wrap;gap:8px}
+.hdr h1{font-size:20px;font-weight:800;background:linear-gradient(135deg,#818CF8,#C084FC);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hdr .ui{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
+.badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:2px 7px;border-radius:5px;background:rgba(99,102,241,.2);color:var(--accl)}
+.badge.sa{background:rgba(234,179,8,.2);color:#FDE047}
+.badge.ga{background:rgba(16,185,129,.2);color:#6EE7B7}
+.cnt{max-width:1100px;margin:0 auto;padding:20px 14px}
+.btn{padding:7px 14px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-p{background:linear-gradient(135deg,#6366F1,#7C3AED);color:#fff}
+.btn-p:hover{filter:brightness(1.15)}
+.btn-g{background:rgba(99,102,241,.12);color:var(--accl)}
+.btn-g:hover{background:rgba(99,102,241,.25)}
+.btn-d{background:rgba(239,68,68,.15);color:#F87171}
+.btn-d:hover{background:#EF4444;color:#fff}
+.btn-s{background:rgba(16,185,129,.15);color:#6EE7B7}
+.btn-s:hover{background:#10B981;color:#fff}
+.btn-w{background:rgba(245,158,11,.15);color:#FBBF24}
+.btn-w:hover{background:#F59E0B;color:#000}
+.btn-sm{padding:4px 8px;font-size:11px}
+.btn-lo{background:rgba(148,163,184,.1);color:var(--dim)}
+.btn-lo:hover{background:rgba(239,68,68,.2);color:#F87171}
+.inp{width:100%;padding:9px 12px;border-radius:9px;font-size:13px;background:var(--bg);border:1px solid var(--brd);color:var(--txt);outline:none;transition:border .15s}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--accg)}
+.crd{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:16px;animation:fadeIn .4s ease;margin-bottom:14px}
+.tabs{display:flex;gap:3px;margin-bottom:20px;background:var(--card);border-radius:10px;padding:3px;border:1px solid var(--brd)}
+.tab{flex:1;padding:8px;text-align:center;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--dim);background:transparent;border:none}
+.tab.on{background:var(--acc);color:#fff;box-shadow:0 3px 10px var(--accg)}
+.tab:not(.on):hover{background:rgba(99,102,241,.1)}
+.layout{display:flex;gap:16px;flex-wrap:wrap}
+.side{flex:0 0 240px;min-width:180px}
+.main{flex:1;min-width:0}
+.gl{display:flex;flex-direction:column;gap:5px}
+.gi{padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;transition:all .15s;border:1px solid transparent;background:var(--card2)}
+.gi:hover{border-color:var(--brd2)}
+.gi.on{background:rgba(99,102,241,.15);border-color:var(--acc);color:var(--accl)}
+.gc{font-size:10px;background:rgba(99,102,241,.2);color:var(--accl);padding:2px 7px;border-radius:5px;font-weight:700}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cdh{text-align:center;font-size:10px;font-weight:700;color:var(--mut);padding:4px 0}
+.cdh.we{color:#F87171}
+.cd{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;font-size:13px;border:1px solid transparent}
+.cd:hover{background:rgba(99,102,241,.12);transform:scale(1.03)}
+.cd.td{border:2px solid var(--acc);background:rgba(99,102,241,.1);font-weight:800}
+.cd.he{background:rgba(99,102,241,.06);border-color:var(--brd)}
+.cd .ds{display:flex;gap:2px;margin-top:2px}
+.cd .dt{width:5px;height:5px;border-radius:50%;animation:pulse 2.5s ease infinite}
+.er{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:9px;background:var(--card2);margin-bottom:5px;transition:all .15s;border:1px solid transparent;animation:fadeIn .3s ease;font-size:13px}
+.er:hover{border-color:var(--brd2)}
+.ed{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn .15s ease}
+.mdl{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:20px;width:400px;max-width:92vw;animation:scaleIn .2s ease;box-shadow:0 25px 60px rgba(0,0,0,.5)}
+.mdl h3{font-size:16px;font-weight:700;margin-bottom:14px}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--dim);margin-bottom:5px}
+.acts{display:flex;gap:8px;margin-top:16px}
+.acts .btn{flex:1;padding:9px}
+.sc{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.sc button{padding:4px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;border:none;background:var(--card2);color:var(--dim)}
+.sc button.on{color:#fff}
+.sc button:hover{filter:brightness(1.2)}
+.aw{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 0%,rgba(99,102,241,.15) 0%,transparent 60%),var(--bg)}
+.ac{width:360px;max-width:90vw;padding:28px;border-radius:18px;background:var(--card);border:1px solid var(--brd);animation:scaleIn .3s ease;box-shadow:0 25px 60px rgba(0,0,0,.4)}
+.ac h2{font-size:22px;font-weight:800;text-align:center;margin-bottom:3px}
+.ac .sub{text-align:center;color:var(--dim);font-size:12px;margin-bottom:20px}
+.ac .btn-p{width:100%;padding:11px;font-size:14px;margin-top:6px}
+.ac .tg{text-align:center;margin-top:14px;font-size:12px;color:var(--dim)}
+.ac .tg a{color:var(--accl);cursor:pointer;text-decoration:underline}
+.aerr{background:rgba(239,68,68,.1);color:#F87171;padding:8px;border-radius:7px;font-size:12px;margin-bottom:10px;text-align:center}
+.asuc{background:rgba(16,185,129,.1);color:#6EE7B7;padding:8px;border-radius:7px;font-size:12px;margin-bottom:10px;text-align:center}
+.rq{padding:10px 12px;border-radius:9px;background:var(--card2);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;animation:fadeIn .3s ease}
+.rq .info{flex:1;font-size:13px}
+.rq .info span{font-weight:600}
+.rq .info small{color:var(--dim);font-size:11px}
+.ut{width:100%;border-collapse:collapse;font-size:13px}
+.ut th{text-align:left;font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.8px;padding:8px 12px;border-bottom:1px solid var(--brd)}
+.ut td{padding:8px 12px;border-bottom:1px solid rgba(148,163,184,.08)}
+.gt{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;background:rgba(99,102,241,.15);color:var(--accl);margin:1px 3px 1px 0}
+.empty{text-align:center;padding:30px 16px;color:var(--mut)}
+.empty .ic{font-size:32px;margin-bottom:6px}
+.empty p{font-size:12px}
+@media(max-width:700px){.side{flex:1 1 100%}.layout{flex-direction:column}.cd{font-size:11px}}
 </style>
 </head>
 <body>
-
 <div id="app"></div>
-
 <script>
-// ============ STATE ============
-const state = {
-  page: 'login', // login, register, dashboard
-  user: null,
-  token: null,
-  error: '',
-  tab: 'calendar', // calendar, users (admin)
-  groups: [],
-  selectedGroup: null,
-  exams: [],
-  users: [],
-  userGroups: {}, // userId -> [groups]
-  calYear: new Date().getFullYear(),
-  calMonth: new Date().getMonth(),
-  modal: null, // null | 'addExam' | 'addGroup' | 'assignGroup'
-  modalData: {},
-  formSubject: '',
-  formDate: '',
-  formNote: '',
-  formGroupName: '',
-  assignUserId: null,
-};
+const S={page:'login',user:null,token:null,error:'',success:'',tab:'calendar',groups:[],myGroups:[],selectedGroup:null,exams:[],users:[],members:[],requests:[],myRequests:[],allRequests:[],calYear:new Date().getFullYear(),calMonth:new Date().getMonth(),modal:null,modalData:{},formSubject:'',formDate:'',formNote:'',formGroupName:'',formOldPw:'',formNewPw:'',assignUserId:null};
+const ML=["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
+const DL=["P","O","T","C","Pk","S","Sv"];
+const CL=[{d:"#6366F1"},{d:"#D97706"},{d:"#10B981"},{d:"#F43F5E"},{d:"#0EA5E9"},{d:"#22C55E"},{d:"#A855F7"},{d:"#F97316"},{d:"#8B5CF6"}];
+const SB=["Matemātika","Latviešu valoda","Angļu valoda","Fizika","Ķīmija","Bioloģija","Vēsture","Ģeogrāfija","Informātika"];
+function sc(s){const i=SB.indexOf(s);if(i>=0)return CL[i];let h=0;for(let i=0;i<s.length;i++)h=((h<<5)-h)+s.charCodeAt(i);return CL[Math.abs(h)%CL.length]}
 
-const MONTHS_LV = ["Janvāris","Februāris","Marts","Aprīlis","Maijs","Jūnijs","Jūlijs","Augusts","Septembris","Oktobris","Novembris","Decembris"];
-const DAYS_LV = ["P","O","T","C","Pk","S","Sv"];
-
-const COLORS = [
-  {bg:"#818CF8",dot:"#6366F1"},{bg:"#F59E0B",dot:"#D97706"},{bg:"#34D399",dot:"#10B981"},
-  {bg:"#FB7185",dot:"#F43F5E"},{bg:"#38BDF8",dot:"#0EA5E9"},{bg:"#4ADE80",dot:"#22C55E"},
-  {bg:"#C084FC",dot:"#A855F7"},{bg:"#FB923C",dot:"#F97316"},{bg:"#A78BFA",dot:"#8B5CF6"},
-];
-
-const SUBJECTS = ["Matemātika","Latviešu valoda","Angļu valoda","Fizika","Ķīmija","Bioloģija","Vēsture","Ģeogrāfija","Informātika"];
-
-function subjectColor(subject) {
-  const idx = SUBJECTS.indexOf(subject);
-  if (idx >= 0) return COLORS[idx];
-  let h = 0; for(let i=0;i<subject.length;i++) h = ((h<<5)-h)+subject.charCodeAt(i);
-  return COLORS[Math.abs(h) % COLORS.length];
+async function api(p,o={}){
+  const h={'Content-Type':'application/json'};
+  if(S.token)h['Authorization']='Bearer '+S.token;
+  const r=await fetch(p,{...o,headers:h});
+  const d=await r.json();
+  if(!r.ok)throw new Error(d.error||'Kļūda');
+  return d;
 }
 
-// ============ API ============
-async function api(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json' };
-  if (state.token) headers['Authorization'] = 'Bearer ' + state.token;
-  const res = await fetch(path, { ...opts, headers });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Kļūda');
-  return data;
+function isSA(){return S.user?.role==='superadmin'}
+function isGA(){return S.myGroups.some(g=>g.my_role==='admin')}
+function isGAfor(gid){if(isSA())return true;const g=S.myGroups.find(g=>g.id===gid);return g?.my_role==='admin'}
+function canManage(){return isSA()||isGA()}
+
+async function login(u,p){try{const d=await api('/api/login',{method:'POST',body:JSON.stringify({username:u,password:p})});S.token=d.token;S.user=d.user;S.page='dashboard';S.error='';localStorage.setItem('token',d.token);await loadData();render()}catch(e){S.error=e.message;render()}}
+async function register(u,p){try{await api('/api/register',{method:'POST',body:JSON.stringify({username:u,password:p})});S.error='';S.success='Reģistrācija veiksmīga! Tagad pieslēdzies.';S.page='login';render()}catch(e){S.error=e.message;render()}}
+async function logout(){try{await api('/api/logout',{method:'POST'})}catch(e){}S.token=null;S.user=null;S.page='login';S.selectedGroup=null;localStorage.removeItem('token');render()}
+
+async function changePw(){
+  try{await api('/api/change-password',{method:'POST',body:JSON.stringify({oldPassword:S.formOldPw,newPassword:S.formNewPw})});S.modal=null;S.formOldPw='';S.formNewPw='';S.success='Parole nomainīta!';setTimeout(()=>{S.success='';render()},3000);render()}
+  catch(e){S.error=e.message;render()}
 }
 
-async function login(username, password) {
-  try {
-    const data = await api('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
-    state.token = data.token; state.user = data.user; state.page = 'dashboard'; state.error = '';
-    localStorage.setItem('token', data.token);
-    await loadData();
-    render();
-  } catch (e) { state.error = e.message; render(); }
-}
-
-async function register(username, password) {
-  try {
-    await api('/api/register', { method: 'POST', body: JSON.stringify({ username, password }) });
-    state.error = ''; state.page = 'login';
-    render();
-  } catch (e) { state.error = e.message; render(); }
-}
-
-async function logout() {
-  try { await api('/api/logout', { method: 'POST' }); } catch(e) {}
-  state.token = null; state.user = null; state.page = 'login';
-  localStorage.removeItem('token');
-  render();
-}
-
-async function loadData() {
-  state.groups = await api('/api/groups');
-  if (state.groups.length > 0 && !state.selectedGroup) {
-    state.selectedGroup = state.groups[0].id;
+async function loadData(){
+  S.myGroups=await api('/api/my-groups');
+  S.groups=await api('/api/groups');
+  if(S.myGroups.length>0&&!S.selectedGroup)S.selectedGroup=S.myGroups[0]?.id||S.groups[0]?.id;
+  if(S.selectedGroup){
+    try{S.exams=await api(`/api/groups/${S.selectedGroup}/exams`)}catch(e){S.exams=[]}
+    if(isGAfor(S.selectedGroup)){try{S.requests=await api(`/api/groups/${S.selectedGroup}/requests`)}catch(e){S.requests=[]}}
   }
-  if (state.selectedGroup) {
-    state.exams = await api(`/api/groups/${state.selectedGroup}/exams`);
-  }
-  if (state.user?.role === 'admin') {
-    state.users = await api('/api/users');
-    for (const u of state.users) {
-      const g = await api(`/api/users/${u.id}/groups`);
-      state.userGroups[u.id] = g;
-    }
-  } else {
-    // load user's own groups
-    const myGroups = await api(`/api/users/${state.user.id}/groups`);
-    state.userGroups[state.user.id] = myGroups;
-  }
+  if(canManage()){try{S.allRequests=await api('/api/all-requests')}catch(e){S.allRequests=[]}}
+  if(isSA()){S.users=await api('/api/users')}
+  S.myRequests=await api('/api/my-requests');
 }
 
-async function selectGroup(id) {
-  state.selectedGroup = id;
-  state.exams = await api(`/api/groups/${id}/exams`);
-  render();
+async function selGroup(id){S.selectedGroup=id;try{S.exams=await api(`/api/groups/${id}/exams`)}catch(e){S.exams=[]}if(isGAfor(id)){try{S.requests=await api(`/api/groups/${id}/requests`)}catch(e){S.requests=[]}}else{S.requests=[]}render()}
+async function addGroup(){if(!S.formGroupName.trim())return;await api('/api/groups',{method:'POST',body:JSON.stringify({name:S.formGroupName.trim()})});S.formGroupName='';S.modal=null;await loadData();render()}
+async function delGroup(id){if(!confirm('Dzēst grupu un visus eksāmenus?'))return;await api(`/api/groups/${id}`,{method:'DELETE'});if(S.selectedGroup===id)S.selectedGroup=null;await loadData();render()}
+async function addExam(){if(!S.formSubject.trim()||!S.formDate)return;await api(`/api/groups/${S.selectedGroup}/exams`,{method:'POST',body:JSON.stringify({subject:S.formSubject.trim(),exam_date:S.formDate,note:S.formNote.trim()})});S.modal=null;S.formSubject='';S.formDate='';S.formNote='';S.exams=await api(`/api/groups/${S.selectedGroup}/exams`);render()}
+async function delExam(id){await api(`/api/exams/${id}`,{method:'DELETE'});S.exams=await api(`/api/groups/${S.selectedGroup}/exams`);render()}
+async function joinGroup(gid){try{await api(`/api/groups/${gid}/join`,{method:'POST'});S.myRequests=await api('/api/my-requests');render()}catch(e){alert(e.message)}}
+async function approveReq(id){await api(`/api/requests/${id}/approve`,{method:'POST'});await loadData();render()}
+async function rejectReq(id){await api(`/api/requests/${id}/reject`,{method:'POST'});await loadData();render()}
+async function setGA(gid,uid){await api(`/api/groups/${gid}/set-admin/${uid}`,{method:'POST'});await loadData();render()}
+async function removeGA(gid,uid){await api(`/api/groups/${gid}/remove-admin/${uid}`,{method:'POST'});await loadData();render()}
+async function removeMember(gid,uid){await api(`/api/groups/${gid}/members/${uid}`,{method:'DELETE'});await loadData();render()}
+async function directAdd(gid,uid){await api(`/api/groups/${gid}/add-member/${uid}`,{method:'POST'});await loadData();render()}
+
+function render(){
+  const a=document.getElementById('app');
+  if(S.page==='login'||S.page==='register'){a.innerHTML=rAuth(S.page);aAuth(S.page)}
+  else{a.innerHTML=rDash();aDash()}
 }
 
-async function addGroup() {
-  if (!state.formGroupName.trim()) return;
-  await api('/api/groups', { method: 'POST', body: JSON.stringify({ name: state.formGroupName.trim() }) });
-  state.formGroupName = ''; state.modal = null;
-  await loadData(); render();
+function rAuth(m){
+  const isL=m==='login';
+  return `<div class="aw"><div class="ac">
+    <h2>📅 ${isL?'Pieslēgties':'Reģistrēties'}</h2>
+    <p class="sub">Eksāmenu kalendāra sistēma</p>
+    ${S.error?`<div class="aerr">${S.error}</div>`:''}
+    ${S.success?`<div class="asuc">${S.success}</div>`:''}
+    <div class="fld"><label>Lietotājvārds</label><input class="inp" id="au" placeholder="Lietotājvārds..." autocomplete="username"></div>
+    <div class="fld"><label>Parole</label><input class="inp" id="ap" type="password" placeholder="Parole..." autocomplete="current-password"></div>
+    <button class="btn btn-p" id="as">${isL?'Pieslēgties':'Reģistrēties'}</button>
+    <div class="tg">${isL?'Nav konta? <a id="at">Reģistrēties</a>':'Jau ir konts? <a id="at">Pieslēgties</a>'}</div>
+    ${isL?'<p style="text-align:center;margin-top:10px;font-size:10px;color:var(--mut)">Admin: admin / admin123</p>':''}
+  </div></div>`;
+}
+function aAuth(m){
+  const isL=m==='login';
+  document.getElementById('as').onclick=()=>{const u=document.getElementById('au').value,p=document.getElementById('ap').value;isL?login(u,p):register(u,p)};
+  document.getElementById('ap').onkeydown=e=>{if(e.key==='Enter')document.getElementById('as').click()};
+  document.getElementById('at').onclick=()=>{S.page=isL?'register':'login';S.error='';S.success='';render()};
 }
 
-async function deleteGroup(id) {
-  if (!confirm('Vai tiešām dzēst šo grupu un visus tās eksāmenus?')) return;
-  await api(`/api/groups/${id}`, { method: 'DELETE' });
-  if (state.selectedGroup === id) state.selectedGroup = null;
-  await loadData(); render();
-}
+function rDash(){
+  const sa=isSA(),ga=isGA(),cm=canManage();
+  // Tabs for different roles
+  let tabs='<button class="tab ${S.tab==="calendar"?"on":""}" data-t="calendar">📅 Kalendārs</button>';
+  if(!sa)tabs+='<button class="tab ${S.tab==="browse"?"on":""}" data-t="browse">🔍 Grupas</button>';
+  if(cm)tabs+=`<button class="tab ${S.tab==='requests'?'on':''}" data-t="requests">📨 Pieprasījumi${S.allRequests.length>0?' ('+S.allRequests.length+')':''}</button>`;
+  if(sa)tabs+='<button class="tab ${S.tab==="users"?"on":""}" data-t="users">👥 Lietotāji</button>';
+  tabs+='<button class="tab ${S.tab==="settings"?"on":""}" data-t="settings">⚙️ Iestatījumi</button>';
+  // Fix template literals
+  tabs=tabs.replace(/\$\{S\.tab==="(\w+)"\?"on":""\}/g,(m,t)=>S.tab===t?'on':'');
+  tabs=tabs.replace(/\$\{S\.tab==='(\w+)'\?'on':''\}/g,(m,t)=>S.tab===t?'on':'');
+  tabs=tabs.replace(/\$\{S\.allRequests\.length>0\?' \('+S\.allRequests\.length\+'\)':''\}/g, S.allRequests.length>0?' ('+S.allRequests.length+')':'');
 
-async function addExam() {
-  if (!state.formSubject.trim() || !state.formDate) return;
-  await api(`/api/groups/${state.selectedGroup}/exams`, {
-    method: 'POST',
-    body: JSON.stringify({ subject: state.formSubject.trim(), exam_date: state.formDate, note: state.formNote.trim() })
-  });
-  state.modal = null; state.formSubject = ''; state.formDate = ''; state.formNote = '';
-  state.exams = await api(`/api/groups/${state.selectedGroup}/exams`);
-  render();
-}
+  let content='';
+  if(S.tab==='calendar')content=rCalTab();
+  else if(S.tab==='browse')content=rBrowse();
+  else if(S.tab==='requests')content=rRequests();
+  else if(S.tab==='users')content=rUsers();
+  else if(S.tab==='settings')content=rSettings();
 
-async function deleteExam(id) {
-  await api(`/api/exams/${id}`, { method: 'DELETE' });
-  state.exams = await api(`/api/groups/${state.selectedGroup}/exams`);
-  render();
-}
-
-async function assignGroup(userId, groupId) {
-  await api(`/api/users/${userId}/groups/${groupId}`, { method: 'POST' });
-  await loadData(); render();
-}
-
-async function removeUserGroup(userId, groupId) {
-  await api(`/api/users/${userId}/groups/${groupId}`, { method: 'DELETE' });
-  await loadData(); render();
-}
-
-// ============ RENDER ============
-function render() {
-  const app = document.getElementById('app');
-  if (state.page === 'login') { app.innerHTML = renderAuth('login'); attachAuth('login'); }
-  else if (state.page === 'register') { app.innerHTML = renderAuth('register'); attachAuth('register'); }
-  else if (state.page === 'dashboard') { app.innerHTML = renderDashboard(); attachDashboard(); }
-}
-
-function renderAuth(mode) {
-  const isLogin = mode === 'login';
-  return `
-    <div class="auth-wrapper">
-      <div class="auth-card">
-        <h2>📅 ${isLogin ? 'Pieslēgties' : 'Reģistrēties'}</h2>
-        <p class="sub">Eksāmenu kalendāra sistēma</p>
-        ${state.error ? `<div class="auth-error">${state.error}</div>` : ''}
-        <div class="field">
-          <label>Lietotājvārds</label>
-          <input class="input" id="auth-user" placeholder="Ievadi lietotājvārdu..." autocomplete="username">
-        </div>
-        <div class="field">
-          <label>Parole</label>
-          <input class="input" id="auth-pass" type="password" placeholder="Ievadi paroli..." autocomplete="current-password">
-        </div>
-        <button class="btn btn-primary" id="auth-submit">${isLogin ? 'Pieslēgties' : 'Reģistrēties'}</button>
-        <div class="toggle">
-          ${isLogin
-            ? 'Nav konta? <a id="auth-toggle">Reģistrēties</a>'
-            : 'Jau ir konts? <a id="auth-toggle">Pieslēgties</a>'}
-        </div>
-        ${isLogin ? '<p style="text-align:center;margin-top:12px;font-size:11px;color:var(--text-muted)">Admin: admin / admin123</p>' : ''}
-      </div>
-    </div>`;
-}
-
-function attachAuth(mode) {
-  const isLogin = mode === 'login';
-  document.getElementById('auth-submit').onclick = () => {
-    const u = document.getElementById('auth-user').value;
-    const p = document.getElementById('auth-pass').value;
-    isLogin ? login(u, p) : register(u, p);
-  };
-  document.getElementById('auth-pass').onkeydown = (e) => {
-    if (e.key === 'Enter') document.getElementById('auth-submit').click();
-  };
-  document.getElementById('auth-toggle').onclick = () => {
-    state.page = isLogin ? 'register' : 'login'; state.error = ''; render();
-  };
-}
-
-function renderDashboard() {
-  const isAdmin = state.user?.role === 'admin';
-  const myGroups = state.userGroups[state.user.id] || [];
-  // Users see only their assigned groups; admins see all
-  const visibleGroups = isAdmin ? state.groups : state.groups.filter(g => myGroups.some(mg => mg.id === g.id));
-
-  return `
-    <div class="app-header">
-      <h1>📅 Eksāmenu kalendārs</h1>
-      <div class="user-info">
-        <span class="role-badge ${isAdmin ? 'admin' : ''}">${isAdmin ? 'Admin' : 'Lietotājs'}</span>
-        <span style="font-weight:600">${state.user.username}</span>
-        <button class="btn btn-logout btn-sm" id="btn-logout">Iziet</button>
-      </div>
+  return `<div class="hdr">
+    <h1>📅 Eksāmenu kalendārs</h1>
+    <div class="ui">
+      <span class="badge ${sa?'sa':ga?'ga':''}">${sa?'Galvenais admin':ga?'Grupas admin':'Lietotājs'}</span>
+      <span style="font-weight:600">${S.user.username}</span>
+      <button class="btn btn-lo btn-sm" id="blo">Iziet</button>
     </div>
-    <div class="container">
-      ${isAdmin ? `
-        <div class="tabs">
-          <button class="tab ${state.tab === 'calendar' ? 'active' : ''}" data-tab="calendar">📅 Kalendārs</button>
-          <button class="tab ${state.tab === 'users' ? 'active' : ''}" data-tab="users">👥 Lietotāji</button>
-        </div>
-      ` : ''}
-
-      ${state.tab === 'calendar' ? renderCalendarTab(visibleGroups, isAdmin) : renderUsersTab()}
-    </div>
-    ${state.modal ? renderModal() : ''}`;
+  </div>
+  <div class="cnt">
+    ${S.success?`<div class="asuc" style="margin-bottom:14px">${S.success}</div>`:''}
+    <div class="tabs">${tabs}</div>
+    ${content}
+  </div>
+  ${S.modal?rModal():''}`;
 }
 
-function renderCalendarTab(visibleGroups, isAdmin) {
-  return `
-    <div class="layout">
-      <div class="sidebar">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <h3 style="font-size:15px;font-weight:700;color:var(--accent-light)">Grupas</h3>
-            ${isAdmin ? '<button class="btn btn-ghost btn-sm" id="btn-add-group">+ Jauna</button>' : ''}
-          </div>
-          ${visibleGroups.length === 0
-            ? `<div class="empty-state"><div class="icon">📁</div><p>${isAdmin ? 'Pievieno pirmo grupu' : 'Tev nav piešķirtu grupu'}</p></div>`
-            : `<div class="group-list">${visibleGroups.map(g => `
-                <div class="group-item ${state.selectedGroup === g.id ? 'active' : ''}" data-group="${g.id}">
-                  <span>${g.name}</span>
-                  <div style="display:flex;gap:6px;align-items:center">
-                    <span class="exam-count">${state.selectedGroup === g.id ? state.exams.length : '...'}</span>
-                    ${isAdmin ? `<button class="btn btn-danger btn-sm" data-del-group="${g.id}" style="padding:3px 6px;font-size:11px">×</button>` : ''}
-                  </div>
-                </div>`).join('')}</div>`
-          }
-        </div>
+function rCalTab(){
+  const visG=isSA()?S.groups:S.myGroups;
+  const canAdd=isGAfor(S.selectedGroup);
+  return `<div class="layout">
+    <div class="side"><div class="crd">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3 style="font-size:14px;font-weight:700;color:var(--accl)">Manas grupas</h3>
+        ${isSA()?'<button class="btn btn-g btn-sm" id="bag">+ Jauna</button>':''}
       </div>
-
-      <div class="main-content">
-        ${state.selectedGroup ? renderCalendar(isAdmin) : '<div class="card empty-state"><div class="icon">👈</div><p>Izvēlies grupu</p></div>'}
-      </div>
-    </div>`;
+      ${visG.length===0?'<div class="empty"><div class="ic">📁</div><p>Nav grupu. Pievienojies grupai cilnē "Grupas".</p></div>'
+        :`<div class="gl">${visG.map(g=>`<div class="gi ${S.selectedGroup===g.id?'on':''}" data-g="${g.id}">
+          <span>${g.name}${g.my_role==='admin'?' 👑':''}</span>
+          <div style="display:flex;gap:4px;align-items:center">
+            <span class="gc">${S.selectedGroup===g.id?S.exams.length:'—'}</span>
+            ${isSA()?`<button class="btn btn-d btn-sm" data-dg="${g.id}" style="padding:2px 5px;font-size:10px">×</button>`:''}
+          </div></div>`).join('')}</div>`}
+    </div></div>
+    <div class="main">${S.selectedGroup?rCal(canAdd):'<div class="crd empty"><div class="ic">👈</div><p>Izvēlies grupu</p></div>'}</div>
+  </div>`;
 }
 
-function renderCalendar(isAdmin) {
-  const y = state.calYear, m = state.calMonth;
-  const daysInMonth = new Date(y, m + 1, 0).getDate();
-  let firstDay = new Date(y, m, 1).getDay();
-  firstDay = firstDay === 0 ? 6 : firstDay - 1;
-  const today = new Date();
-  const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
-  const examsByDate = {};
-  state.exams.forEach(ex => {
-    if (!examsByDate[ex.exam_date]) examsByDate[ex.exam_date] = [];
-    examsByDate[ex.exam_date].push(ex);
-  });
-
-  let daysHtml = '';
-  for (let i = 0; i < firstDay; i++) daysHtml += '<div></div>';
-  for (let d = 1; d <= daysInMonth; d++) {
-    const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayExams = examsByDate[key] || [];
-    const isToday = key === todayKey;
-    const dow = (firstDay + d - 1) % 7;
-    const isWknd = dow >= 5;
-    const dots = dayExams.slice(0, 3).map(ex => {
-      const c = subjectColor(ex.subject);
-      return `<div class="dot" style="background:${c.dot}"></div>`;
-    }).join('');
-
-    daysHtml += `
-      <div class="cal-day ${isToday ? 'today' : ''} ${dayExams.length ? 'has-exam' : ''}"
-           ${isAdmin ? `data-add-exam="${key}"` : ''}
-           style="color:${isWknd ? '#F87171' : 'var(--text)'}">
-        <span style="font-weight:${isToday ? 800 : 500}">${d}</span>
-        ${dots ? `<div class="dots">${dots}</div>` : ''}
-        ${dayExams.length > 0 ? `<span style="position:absolute;top:2px;right:5px;font-size:9px;font-weight:700;color:var(--accent-light)">${dayExams.length}</span>` : ''}
-      </div>`;
+function rCal(canAdd){
+  const y=S.calYear,m=S.calMonth,dim=new Date(y,m+1,0).getDate();
+  let fd=new Date(y,m,1).getDay();fd=fd===0?6:fd-1;
+  const now=new Date(),tk=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const ebd={};S.exams.forEach(e=>{if(!ebd[e.exam_date])ebd[e.exam_date]=[];ebd[e.exam_date].push(e)});
+  let dh='';for(let i=0;i<fd;i++)dh+='<div></div>';
+  for(let d=1;d<=dim;d++){
+    const k=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const de=ebd[k]||[];const it=k===tk;const dow=(fd+d-1)%7;const wk=dow>=5;
+    const dots=de.slice(0,3).map(e=>`<div class="dt" style="background:${sc(e.subject).d}"></div>`).join('');
+    dh+=`<div class="cd ${it?'td':''} ${de.length?'he':''}" ${canAdd?`data-ae="${k}"`:''}style="color:${wk?'#F87171':'var(--txt)'}">
+      <span style="font-weight:${it?800:500}">${d}</span>${dots?`<div class="ds">${dots}</div>`:''}
+      ${de.length?`<span style="position:absolute;top:1px;right:4px;font-size:8px;font-weight:700;color:var(--accl)">${de.length}</span>`:''}</div>`;
   }
-
-  const groupName = state.groups.find(g => g.id === state.selectedGroup)?.name || '';
-
-  const examListHtml = state.exams.map(ex => {
-    const c = subjectColor(ex.subject);
-    const [ey, em, ed] = ex.exam_date.split('-');
-    const past = ex.exam_date < todayKey;
-    return `
-      <div class="exam-row" style="opacity:${past ? 0.5 : 1}">
-        <div class="exam-dot" style="background:${c.dot}"></div>
-        <div class="exam-info">
-          <div class="exam-subject">${ex.subject}</div>
-          ${ex.note ? `<div class="exam-note">${ex.note}</div>` : ''}
-        </div>
-        <span class="exam-date">${ed}.${em}.${ey}</span>
-        ${isAdmin ? `<button class="btn btn-danger btn-sm" data-del-exam="${ex.id}">×</button>` : ''}
-      </div>`;
+  const gn=S.groups.find(g=>g.id===S.selectedGroup)?.name||'';
+  const el=S.exams.map(e=>{const c=sc(e.subject);const[ey,em,ed]=e.exam_date.split('-');const past=e.exam_date<tk;
+    return `<div class="er" style="opacity:${past?.5:1}"><div class="ed" style="background:${c.d}"></div>
+    <div style="flex:1"><div style="font-weight:600">${e.subject}</div>${e.note?`<div style="font-size:11px;color:var(--dim);margin-top:1px">${e.note}</div>`:''}</div>
+    <span style="font-size:11px;color:var(--accl);font-weight:600">${ed}.${em}.${ey}</span>
+    ${canAdd?`<button class="btn btn-d btn-sm" data-de="${e.id}">×</button>`:''}</div>`;
   }).join('');
 
-  return `
-    <div class="card" style="margin-bottom:16px">
-      <div class="cal-header">
-        <h3>${MONTHS_LV[m]} ${y} — <span style="color:var(--accent-light)">${groupName}</span></h3>
-        <div class="cal-nav">
-          <button id="cal-prev">‹</button>
-          <button id="cal-today" style="width:auto;padding:0 10px;font-size:11px;font-weight:700">Šodien</button>
-          <button id="cal-next">›</button>
-        </div>
+  // Pending requests for this group (if admin)
+  let reqHtml='';
+  if(isGAfor(S.selectedGroup)&&S.requests.length>0){
+    reqHtml=`<div class="crd"><h3 style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--warn)">📨 Pieprasījumi pievienoties (${S.requests.length})</h3>
+    ${S.requests.map(r=>`<div class="rq"><div class="info"><span>${r.username}</span></div>
+    <button class="btn btn-s btn-sm" data-ar="${r.id}">✓</button>
+    <button class="btn btn-d btn-sm" data-rr="${r.id}">✗</button></div>`).join('')}</div>`;
+  }
+
+  return `<div class="crd">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:6px">
+      <h3 style="font-size:16px;font-weight:700">${ML[m]} ${y} — <span style="color:var(--accl)">${gn}</span></h3>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn btn-g btn-sm" id="cp">‹</button>
+        <button class="btn btn-g btn-sm" id="ct" style="font-size:10px">Šodien</button>
+        <button class="btn btn-g btn-sm" id="cn">›</button>
       </div>
-      <div class="cal-grid">
-        ${DAYS_LV.map((d, i) => `<div class="cal-day-header ${i >= 5 ? 'weekend' : ''}">${d}</div>`).join('')}
-        ${daysHtml}
-      </div>
-      ${isAdmin ? '<p style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted)">Klikšķini uz datuma, lai pievienotu eksāmenu</p>' : ''}
     </div>
-
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h3 style="font-size:15px;font-weight:700">Eksāmenu saraksts</h3>
-        ${isAdmin ? '<button class="btn btn-primary btn-sm" id="btn-add-exam-manual">+ Pievienot</button>' : ''}
-      </div>
-      ${state.exams.length === 0
-        ? '<div class="empty-state"><div class="icon">📝</div><p>Nav eksāmenu šai grupai</p></div>'
-        : examListHtml}
-    </div>`;
+    <div class="cg">${DL.map((d,i)=>`<div class="cdh ${i>=5?'we':''}">${d}</div>`).join('')}${dh}</div>
+    ${canAdd?'<p style="text-align:center;margin-top:10px;font-size:11px;color:var(--mut)">Klikšķini uz datuma lai pievienotu eksāmenu</p>':''}
+  </div>
+  ${reqHtml}
+  <div class="crd">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h3 style="font-size:14px;font-weight:700">Eksāmenu saraksts</h3>
+      ${canAdd?'<button class="btn btn-p btn-sm" id="bam">+ Pievienot</button>':''}
+    </div>
+    ${S.exams.length===0?'<div class="empty"><div class="ic">📝</div><p>Nav eksāmenu</p></div>':el}
+  </div>`;
 }
 
-function renderUsersTab() {
-  const rows = state.users.map(u => {
-    const groups = state.userGroups[u.id] || [];
-    const groupTags = groups.map(g =>
-      `<span class="group-tag">${g.name}<button class="remove" data-rm-ug="${u.id}-${g.id}">×</button></span>`
-    ).join('');
-    return `
-      <tr>
-        <td style="font-weight:600">${u.username}</td>
-        <td><span class="role-badge ${u.role === 'admin' ? 'admin' : ''}">${u.role}</span></td>
-        <td>${groupTags || '<span style="color:var(--text-muted);font-size:12px">Nav grupu</span>'}
-          <button class="btn btn-ghost btn-sm" data-assign-user="${u.id}" style="margin-left:6px">+ Grupa</button>
-        </td>
-      </tr>`;
-  }).join('');
-
-  return `
-    <div class="card">
-      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px">Lietotāju pārvaldība</h3>
-      ${state.users.length === 0
-        ? '<div class="empty-state"><div class="icon">👥</div><p>Nav lietotāju</p></div>'
-        : `<table class="users-table">
-            <thead><tr><th>Lietotājs</th><th>Loma</th><th>Grupas</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>`}
-    </div>`;
+function rBrowse(){
+  const myIds=S.myGroups.map(g=>g.id);
+  const pendingIds=S.myRequests.filter(r=>r.status==='pending').map(r=>r.group_id);
+  const available=S.groups.filter(g=>!myIds.includes(g.id));
+  return `<div class="crd">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">Pieejamās grupas</h3>
+    ${available.length===0?'<div class="empty"><div class="ic">✅</div><p>Tu jau esi visās grupās, vai nav pieejamu grupu</p></div>'
+    :available.map(g=>{
+      const isPending=pendingIds.includes(g.id);
+      return `<div class="rq"><div class="info"><span>${g.name}</span></div>
+      ${isPending?'<span style="font-size:11px;color:var(--warn);font-weight:600">Gaida apstiprinājumu...</span>'
+      :`<button class="btn btn-p btn-sm" data-jg="${g.id}">Pievienoties</button>`}</div>`;
+    }).join('')}
+  </div>
+  <div class="crd">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">Mani pieprasījumi</h3>
+    ${S.myRequests.length===0?'<div class="empty"><p>Nav pieprasījumu</p></div>'
+    :S.myRequests.map(r=>{
+      const col=r.status==='pending'?'var(--warn)':r.status==='approved'?'var(--grn)':'var(--red)';
+      const txt=r.status==='pending'?'Gaida':r.status==='approved'?'Apstiprināts':'Noraidīts';
+      return `<div class="rq"><div class="info"><span>${r.group_name}</span></div>
+      <span style="font-size:11px;color:${col};font-weight:600">${txt}</span></div>`;
+    }).join('')}
+  </div>`;
 }
 
-function renderModal() {
-  if (state.modal === 'addGroup') {
-    return `
-      <div class="modal-bg" id="modal-bg">
-        <div class="modal">
-          <h3>Jauna grupa</h3>
-          <div class="field">
-            <label>Grupas nosaukums</label>
-            <input class="input" id="modal-group-name" placeholder="Piem.: 12.a klase" value="${state.formGroupName}">
-          </div>
-          <div class="actions">
-            <button class="btn btn-ghost" id="modal-cancel">Atcelt</button>
-            <button class="btn btn-primary" id="modal-confirm">Pievienot</button>
-          </div>
-        </div>
-      </div>`;
+function rRequests(){
+  return `<div class="crd">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">📨 Visi gaidošie pieprasījumi</h3>
+    ${S.allRequests.length===0?'<div class="empty"><div class="ic">✅</div><p>Nav gaidošu pieprasījumu</p></div>'
+    :S.allRequests.map(r=>`<div class="rq"><div class="info"><span>${r.username}</span> <small>→ ${r.group_name}</small></div>
+    <button class="btn btn-s btn-sm" data-ar="${r.id}">✓ Apstiprināt</button>
+    <button class="btn btn-d btn-sm" data-rr="${r.id}">✗ Noraidīt</button></div>`).join('')}
+  </div>`;
+}
+
+function rUsers(){
+  return `<div class="crd">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">Lietotāju pārvaldība</h3>
+    <p style="font-size:11px;color:var(--dim);margin-bottom:12px">Izvēlies grupu lai pārvaldītu tās dalībniekus un adminus</p>
+    <div class="sc">${S.groups.map(g=>`<button class="${S.modalData.manageGroup===g.id?'on':''}" data-mg="${g.id}" style="${S.modalData.manageGroup===g.id?'background:var(--acc)':''}">${g.name}</button>`).join('')}</div>
+    ${S.modalData.manageGroup?rGroupMembers():'<div class="empty"><p>Izvēlies grupu augstāk</p></div>'}
+  </div>
+  <div class="crd">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">Visi lietotāji</h3>
+    <table class="ut"><thead><tr><th>Lietotājs</th><th>Loma</th></tr></thead>
+    <tbody>${S.users.map(u=>`<tr><td style="font-weight:600">${u.username}</td>
+    <td><span class="badge ${u.role==='superadmin'?'sa':''}">${u.role==='superadmin'?'Galvenais admin':'Lietotājs'}</span></td></tr>`).join('')}</tbody></table>
+  </div>`;
+}
+
+function rGroupMembers(){
+  const gid=S.modalData.manageGroup;
+  const gn=S.groups.find(g=>g.id===gid)?.name||'';
+  const members=S.modalData.members||[];
+  const nonMembers=S.users.filter(u=>!members.some(m=>m.id===u.id)&&u.role!=='superadmin');
+  return `<div style="margin-top:12px">
+    <h4 style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--accl)">${gn} — dalībnieki</h4>
+    ${members.length===0?'<p style="font-size:12px;color:var(--dim)">Nav dalībnieku</p>'
+    :members.map(m=>`<div class="rq"><div class="info"><span>${m.username}</span>
+    <span class="badge ${m.group_role==='admin'?'ga':''}" style="margin-left:6px">${m.group_role==='admin'?'Grupas admin':'Dalībnieks'}</span></div>
+    ${m.group_role==='admin'
+      ?`<button class="btn btn-w btn-sm" data-rga="${gid}-${m.id}">Noņemt admin</button>`
+      :`<button class="btn btn-s btn-sm" data-sga="${gid}-${m.id}">Padarīt admin</button>`}
+    <button class="btn btn-d btn-sm" data-rmm="${gid}-${m.id}">Izņemt</button></div>`).join('')}
+    ${nonMembers.length>0?`<div style="margin-top:10px"><p style="font-size:11px;color:var(--dim);margin-bottom:6px">Pievienot dalībnieku:</p>
+    ${nonMembers.map(u=>`<button class="btn btn-g btn-sm" data-dam="${gid}-${u.id}" style="margin:2px">${u.username}</button>`).join('')}</div>`:''}
+  </div>`;
+}
+
+function rSettings(){
+  return `<div class="crd">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:14px">⚙️ Iestatījumi</h3>
+    <div style="max-width:320px">
+      <div class="fld"><label>Pašreizējā parole</label><input class="inp" type="password" id="opw" placeholder="Vecā parole..."></div>
+      <div class="fld"><label>Jaunā parole</label><input class="inp" type="password" id="npw" placeholder="Jaunā parole (min 4 simboli)..."></div>
+      <button class="btn btn-p" id="bcpw">Nomainīt paroli</button>
+      ${S.error?`<div class="aerr" style="margin-top:10px">${S.error}</div>`:''}
+    </div>
+  </div>`;
+}
+
+function rModal(){
+  if(S.modal==='addGroup'){
+    return `<div class="mbg" id="mbg"><div class="mdl"><h3>Jauna grupa</h3>
+    <div class="fld"><label>Nosaukums</label><input class="inp" id="mgn" placeholder="Piem.: 12.a klase" value="${S.formGroupName}"></div>
+    <div class="acts"><button class="btn btn-g" id="mc">Atcelt</button><button class="btn btn-p" id="mok">Pievienot</button></div></div></div>`;
   }
-
-  if (state.modal === 'addExam') {
-    const chips = SUBJECTS.map(s => {
-      const c = subjectColor(s);
-      const active = state.formSubject === s;
-      return `<button class="subject-chip ${active ? 'active' : ''}" data-subj="${s}" style="background:${active ? c.dot : ''};">${s}</button>`;
-    }).join('');
-
-    return `
-      <div class="modal-bg" id="modal-bg">
-        <div class="modal">
-          <h3>Pievienot eksāmenu</h3>
-          <p style="color:var(--accent-light);font-size:13px;font-weight:600;margin-bottom:14px">${state.modalData.dateFormatted || ''}</p>
-          <div class="field">
-            <label>Izvēlies priekšmetu</label>
-            <div class="subject-chips">${chips}</div>
-          </div>
-          <div class="field">
-            <label>Vai ieraksti citu</label>
-            <input class="input" id="modal-subject" placeholder="Priekšmeta nosaukums..." value="${state.formSubject}">
-          </div>
-          <div class="field">
-            <label>Datums</label>
-            <input class="input" id="modal-date" type="date" value="${state.formDate}">
-          </div>
-          <div class="field">
-            <label>Piezīmes (neobligāti)</label>
-            <input class="input" id="modal-note" placeholder="Piem.: 10:00, 205.kab." value="${state.formNote}">
-          </div>
-          <div class="actions">
-            <button class="btn btn-ghost" id="modal-cancel">Atcelt</button>
-            <button class="btn btn-primary" id="modal-confirm">Pievienot</button>
-          </div>
-        </div>
-      </div>`;
+  if(S.modal==='addExam'){
+    const chips=SB.map(s=>{const c=sc(s);const on=S.formSubject===s;return `<button class="sc-btn ${on?'on':''}" data-sb="${s}" style="${on?'background:'+c.d+';color:#fff':''}">${s}</button>`}).join('');
+    return `<div class="mbg" id="mbg"><div class="mdl"><h3>Pievienot eksāmenu</h3>
+    <p style="color:var(--accl);font-size:12px;font-weight:600;margin-bottom:12px">${S.modalData.df||''}</p>
+    <div class="fld"><label>Priekšmets</label><div class="sc">${chips}</div></div>
+    <div class="fld"><label>Vai ieraksti citu</label><input class="inp" id="msb" placeholder="Priekšmets..." value="${S.formSubject}"></div>
+    <div class="fld"><label>Datums</label><input class="inp" id="mdt" type="date" value="${S.formDate}"></div>
+    <div class="fld"><label>Piezīmes</label><input class="inp" id="mnt" placeholder="10:00, 205.kab." value="${S.formNote}"></div>
+    <div class="acts"><button class="btn btn-g" id="mc">Atcelt</button><button class="btn btn-p" id="mok">Pievienot</button></div></div></div>`;
   }
-
-  if (state.modal === 'assignGroup') {
-    const user = state.users.find(u => u.id === state.assignUserId);
-    const assigned = (state.userGroups[state.assignUserId] || []).map(g => g.id);
-    const available = state.groups.filter(g => !assigned.includes(g.id));
-
-    return `
-      <div class="modal-bg" id="modal-bg">
-        <div class="modal">
-          <h3>Piešķirt grupu: ${user?.username || ''}</h3>
-          ${available.length === 0
-            ? '<p style="color:var(--text-dim);font-size:13px">Visas grupas jau piešķirtas</p>'
-            : `<div style="display:flex;flex-direction:column;gap:6px">${available.map(g =>
-                `<button class="btn btn-ghost" data-assign-gid="${g.id}" style="text-align:left">${g.name}</button>`
-              ).join('')}</div>`}
-          <div class="actions" style="margin-top:16px">
-            <button class="btn btn-ghost" id="modal-cancel">Aizvērt</button>
-          </div>
-        </div>
-      </div>`;
-  }
-
   return '';
 }
 
-function attachDashboard() {
-  document.getElementById('btn-logout')?.addEventListener('click', logout);
-
-  // Tabs
-  document.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => { state.tab = t.dataset.tab; render(); });
-  });
+function aDash(){
+  document.getElementById('blo')?.addEventListener('click',logout);
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{S.tab=t.dataset.t;S.error='';render()}));
 
   // Groups
-  document.querySelectorAll('[data-group]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      if (e.target.dataset.delGroup) return;
-      selectGroup(parseInt(el.dataset.group));
-    });
-  });
-  document.querySelectorAll('[data-del-group]').forEach(el => {
-    el.addEventListener('click', (e) => { e.stopPropagation(); deleteGroup(parseInt(el.dataset.delGroup)); });
-  });
-  document.getElementById('btn-add-group')?.addEventListener('click', () => {
-    state.modal = 'addGroup'; state.formGroupName = ''; render();
-  });
+  document.querySelectorAll('[data-g]').forEach(el=>el.addEventListener('click',e=>{if(e.target.dataset.dg)return;selGroup(parseInt(el.dataset.g))}));
+  document.querySelectorAll('[data-dg]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();delGroup(parseInt(el.dataset.dg))}));
+  document.getElementById('bag')?.addEventListener('click',()=>{S.modal='addGroup';S.formGroupName='';render()});
 
-  // Calendar nav
-  document.getElementById('cal-prev')?.addEventListener('click', () => {
-    if (state.calMonth === 0) { state.calMonth = 11; state.calYear--; } else state.calMonth--;
+  // Calendar
+  document.getElementById('cp')?.addEventListener('click',()=>{if(S.calMonth===0){S.calMonth=11;S.calYear--}else S.calMonth--;render()});
+  document.getElementById('cn')?.addEventListener('click',()=>{if(S.calMonth===11){S.calMonth=0;S.calYear++}else S.calMonth++;render()});
+  document.getElementById('ct')?.addEventListener('click',()=>{S.calMonth=new Date().getMonth();S.calYear=new Date().getFullYear();render()});
+
+  // Add exam
+  document.querySelectorAll('[data-ae]').forEach(el=>el.addEventListener('click',()=>{
+    const d=el.dataset.ae;const[y,m,day]=d.split('-');S.formDate=d;S.formSubject='';S.formNote='';S.modalData={df:`${day}.${m}.${y}`};S.modal='addExam';render()}));
+  document.getElementById('bam')?.addEventListener('click',()=>{S.formDate='';S.formSubject='';S.formNote='';S.modalData={};S.modal='addExam';render()});
+  document.querySelectorAll('[data-de]').forEach(el=>el.addEventListener('click',()=>delExam(parseInt(el.dataset.de))));
+
+  // Join group
+  document.querySelectorAll('[data-jg]').forEach(el=>el.addEventListener('click',()=>joinGroup(parseInt(el.dataset.jg))));
+
+  // Approve/reject
+  document.querySelectorAll('[data-ar]').forEach(el=>el.addEventListener('click',()=>approveReq(parseInt(el.dataset.ar))));
+  document.querySelectorAll('[data-rr]').forEach(el=>el.addEventListener('click',()=>rejectReq(parseInt(el.dataset.rr))));
+
+  // Manage groups (users tab)
+  document.querySelectorAll('[data-mg]').forEach(el=>el.addEventListener('click',async()=>{
+    const gid=parseInt(el.dataset.mg);S.modalData.manageGroup=gid;
+    try{S.modalData.members=await api(`/api/groups/${gid}/members`)}catch(e){S.modalData.members=[]}
     render();
-  });
-  document.getElementById('cal-next')?.addEventListener('click', () => {
-    if (state.calMonth === 11) { state.calMonth = 0; state.calYear++; } else state.calMonth++;
-    render();
-  });
-  document.getElementById('cal-today')?.addEventListener('click', () => {
-    state.calMonth = new Date().getMonth(); state.calYear = new Date().getFullYear(); render();
-  });
+  }));
+  document.querySelectorAll('[data-sga]').forEach(el=>el.addEventListener('click',()=>{const[g,u]=el.dataset.sga.split('-').map(Number);setGA(g,u)}));
+  document.querySelectorAll('[data-rga]').forEach(el=>el.addEventListener('click',()=>{const[g,u]=el.dataset.rga.split('-').map(Number);removeGA(g,u)}));
+  document.querySelectorAll('[data-rmm]').forEach(el=>el.addEventListener('click',()=>{const[g,u]=el.dataset.rmm.split('-').map(Number);removeMember(g,u)}));
+  document.querySelectorAll('[data-dam]').forEach(el=>el.addEventListener('click',()=>{const[g,u]=el.dataset.dam.split('-').map(Number);directAdd(g,u)}));
 
-  // Add exam from calendar click
-  document.querySelectorAll('[data-add-exam]').forEach(el => {
-    el.addEventListener('click', () => {
-      const d = el.dataset.addExam;
-      const [y, m, day] = d.split('-');
-      state.formDate = d;
-      state.formSubject = '';
-      state.formNote = '';
-      state.modalData = { dateFormatted: `${day}.${m}.${y}` };
-      state.modal = 'addExam';
-      render();
-    });
-  });
-
-  document.getElementById('btn-add-exam-manual')?.addEventListener('click', () => {
-    state.formDate = ''; state.formSubject = ''; state.formNote = '';
-    state.modalData = {};
-    state.modal = 'addExam';
-    render();
-  });
-
-  // Delete exam
-  document.querySelectorAll('[data-del-exam]').forEach(el => {
-    el.addEventListener('click', () => deleteExam(parseInt(el.dataset.delExam)));
-  });
-
-  // Users tab
-  document.querySelectorAll('[data-assign-user]').forEach(el => {
-    el.addEventListener('click', () => {
-      state.assignUserId = parseInt(el.dataset.assignUser);
-      state.modal = 'assignGroup';
-      render();
-    });
-  });
-  document.querySelectorAll('[data-rm-ug]').forEach(el => {
-    el.addEventListener('click', () => {
-      const [uid, gid] = el.dataset.rmUg.split('-').map(Number);
-      removeUserGroup(uid, gid);
-    });
-  });
+  // Settings
+  document.getElementById('bcpw')?.addEventListener('click',()=>{S.formOldPw=document.getElementById('opw')?.value||'';S.formNewPw=document.getElementById('npw')?.value||'';changePw()});
 
   // Modal
-  attachModal();
-}
-
-function attachModal() {
-  document.getElementById('modal-bg')?.addEventListener('click', (e) => {
-    if (e.target.id === 'modal-bg') { state.modal = null; render(); }
-  });
-  document.getElementById('modal-cancel')?.addEventListener('click', () => { state.modal = null; render(); });
-
-  if (state.modal === 'addGroup') {
-    const inp = document.getElementById('modal-group-name');
-    inp?.focus();
-    inp?.addEventListener('input', (e) => state.formGroupName = e.target.value);
-    inp?.addEventListener('keydown', (e) => { if (e.key === 'Enter') addGroup(); });
-    document.getElementById('modal-confirm')?.addEventListener('click', addGroup);
+  document.getElementById('mbg')?.addEventListener('click',e=>{if(e.target.id==='mbg'){S.modal=null;render()}});
+  document.getElementById('mc')?.addEventListener('click',()=>{S.modal=null;render()});
+  if(S.modal==='addGroup'){
+    const i=document.getElementById('mgn');i?.focus();i?.addEventListener('input',e=>S.formGroupName=e.target.value);
+    i?.addEventListener('keydown',e=>{if(e.key==='Enter')addGroup()});
+    document.getElementById('mok')?.addEventListener('click',addGroup);
   }
-
-  if (state.modal === 'addExam') {
-    document.querySelectorAll('[data-subj]').forEach(el => {
-      el.addEventListener('click', () => {
-        state.formSubject = el.dataset.subj;
-        const inp = document.getElementById('modal-subject');
-        if (inp) inp.value = state.formSubject;
-        render();
-      });
-    });
-    document.getElementById('modal-subject')?.addEventListener('input', (e) => state.formSubject = e.target.value);
-    document.getElementById('modal-date')?.addEventListener('input', (e) => state.formDate = e.target.value);
-    document.getElementById('modal-note')?.addEventListener('input', (e) => state.formNote = e.target.value);
-    document.getElementById('modal-confirm')?.addEventListener('click', addExam);
-  }
-
-  if (state.modal === 'assignGroup') {
-    document.querySelectorAll('[data-assign-gid]').forEach(el => {
-      el.addEventListener('click', async () => {
-        await assignGroup(state.assignUserId, parseInt(el.dataset.assignGid));
-        state.modal = null;
-        render();
-      });
-    });
+  if(S.modal==='addExam'){
+    document.querySelectorAll('[data-sb]').forEach(el=>el.addEventListener('click',()=>{S.formSubject=el.dataset.sb;const i=document.getElementById('msb');if(i)i.value=S.formSubject;render()}));
+    document.getElementById('msb')?.addEventListener('input',e=>S.formSubject=e.target.value);
+    document.getElementById('mdt')?.addEventListener('input',e=>S.formDate=e.target.value);
+    document.getElementById('mnt')?.addEventListener('input',e=>S.formNote=e.target.value);
+    document.getElementById('mok')?.addEventListener('click',addExam);
   }
 }
 
-// ============ INIT ============
-async function init() {
-  const token = localStorage.getItem('token');
-  if (token) {
-    state.token = token;
-    try {
-      const data = await api('/api/me');
-      state.user = data.user;
-      state.page = 'dashboard';
-      await loadData();
-    } catch (e) {
-      localStorage.removeItem('token');
-      state.token = null;
-    }
-  }
+async function init(){
+  const t=localStorage.getItem('token');
+  if(t){S.token=t;try{const d=await api('/api/me');S.user=d.user;S.page='dashboard';await loadData()}catch(e){localStorage.removeItem('token');S.token=null}}
   render();
 }
-
 init();
 </script>
 </body>
